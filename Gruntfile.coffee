@@ -25,6 +25,7 @@ module.exports = (grunt) ->
         port: 9000,
         hostname: "*"
         livereload: 35729
+        open: true
       livereload:
         options:
           base: ["<%= grunt.config.get('destinationDir') %>"]
