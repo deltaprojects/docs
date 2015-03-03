@@ -1,0 +1,7 @@
+{
+  "repositories": [
+    {"id": "sting", "url": "http://localhost:1951/docs"},
+    {"id": "suspect", "url": "http://localhost:55937/docs"},
+    {"id": "api", "url": "http://localhost:8090/api"}
+  ]
+}

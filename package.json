@@ -1,0 +1,40 @@
+{
+  "name": "docs",
+  "version": "1.0",
+  "description": "docs",
+  "repository": {},
+  "private": true,
+  "dependencies": {
+    "baconjs": "^0.7.50",
+    "domready": "0.3.0",
+    "history.js": "^1.8.0",
+    "immutable": "^3.6.2",
+    "jquery": "^2.1.3",
+    "marked": "^0.3.3",
+    "react": "^0.12.2",
+    "underscore": "^1.8.2"
+  },
+  "devDependencies": {
+    "browserify": "^8.1.3",
+    "bundle-collapser": "^1.1.1",
+    "coffee-react": "^2.4.1",
+    "coffeeify": "^1.0.0",
+    "grunt": "~0.4.5",
+    "grunt-bower-concat": "^0.4.0",
+    "grunt-bowercopy": "^1.2.0",
+    "grunt-browserify": "^3.3.0",
+    "grunt-closure-tools": "~0.9.7",
+    "grunt-config": "^0.2.2",
+    "grunt-contrib-coffee": "~0.11.1",
+    "grunt-contrib-concat": "~0.5.0",
+    "grunt-contrib-connect": "^0.8.0",
+    "grunt-contrib-copy": "^0.7.0",
+    "grunt-contrib-cssmin": "^0.11.0",
+    "grunt-contrib-less": "^1.0.0",
+    "grunt-contrib-uglify": "^0.7.0",
+    "grunt-contrib-watch": "~0.6.1",
+    "grunt-mustache-render": "^1.6.0",
+    "load-grunt-tasks": "~0.6.0",
+    "time-grunt": "^1.0.0"
+  }
+}

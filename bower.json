@@ -1,0 +1,18 @@
+{
+  "name": "docs",
+  "version": "1.0",
+  "authors": [
+    "Johan Stille <johan@deltaprojects.com>"
+  ],
+  "main": "docs.html",
+  "moduleType": [
+    "amd"
+  ],
+  "license": "Apache-2.0",
+  "private": true,
+  "dependencies": {
+    "highlightjs": "~8.4.0",
+    "history.js": "~1.8.0",
+    "bootstrap": "~3.3.2"
+  }
+}
