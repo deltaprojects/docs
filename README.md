@@ -1,6 +1,7 @@
 # Simple Multi-Project Documentation
 
 ## Installation
+Make sure you have an updated npm (`npm install -g npm@latest`).
 
 ```bash
 $ npm install
