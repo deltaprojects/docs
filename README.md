@@ -5,7 +5,10 @@ Make sure you have an updated npm (`npm install -g npm@latest`).
 
 ```bash
 $ npm install
+$ npm install -g bower
 $ bower install
+$ npm install -g grunt
+$ npm install -g grunt-cli
 ```
 
 ## Building

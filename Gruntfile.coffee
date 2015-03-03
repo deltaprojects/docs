@@ -63,7 +63,7 @@ module.exports = (grunt) ->
     uglify:
       options:
         mangle: true
-        compress: true
+        compress: {}
       bower:
         files:
           "<%= grunt.config.get('destinationDir') %>/js/bower.min.js": "<%= grunt.config.get('destinationDir') %>/js/bower.js"
