@@ -104,20 +104,20 @@ tocTree = Bacon.combineAsArray(toc, identStream).map (v) ->
 
 TOCEntry = React.createClass
   click: ->
-    unless @props.entry.offline
-      History.pushState null, null, '?ref=' + @props.entry.id + '/' + @props.entry.url
+    unless @props.offline
+      History.pushState null, null, '?ref=' + @props.id + '/' + @props.url
   render: ->
-    entries = (<TOCEntry entry={entry} /> for entry in @props.entry.sections || [])
+    entries = (<TOCEntry {...entry} /> for entry in @props.sections || [])
     classes = React.addons.classSet
-      'active': @props.entry.active
+      'active': @props.active
 
-    link = if @props.entry.offline
+    link = if @props.offline
       <a onClick={@click}>
         <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
-        {@props.entry.title} offline
+        {@props.title} offline
       </a>
     else
-      <a onClick={@click}>{@props.entry.title}</a>
+      <a onClick={@click}>{@props.title}</a>
 
     <li className={classes}>{link}
       <ul className="nav nav-stacked">
@@ -127,7 +127,7 @@ TOCEntry = React.createClass
 
 TableOfContents = React.createClass
   render: ->
-    entries = (<TOCEntry entry={entry} /> for entry in @props.entries)
+    entries = (<TOCEntry {...entry} /> for entry in @props.entries)
     <ul className="nav nav-stacked fixed">
       {entries}
     </ul>
