@@ -104,45 +104,49 @@ module.exports = (grunt) ->
         ]
 
     watch:
+      options:
+        livereload: true
       coffee:
         files: [
           "<%= grunt.config.get('sourceDir') %>/**/*.cjsx"
           "<%= grunt.config.get('sourceDir') %>/**/*.js"
         ]
-        tasks: ["config:<%= grunt.config.get('env') %>", 'browserify', 'uglify:docs']
-        livereload: true
+        tasks: ["config:<%= grunt.config.get('env') %>", 'newer:browserify', 'newer:uglify:docs']
       mustache:
         files: [
           "<%= grunt.config.get('sourceDir') %>/**/*.mustache"
         ]
-        tasks: ["config:<%= grunt.config.get('env') %>", "mustache_render"]
-        livereload: true
+        tasks: ["config:<%= grunt.config.get('env') %>", "newer:mustache_render"]
       less:
         files: "<%= grunt.config.get('sourceDir') %>/**/*.less"
-        tasks: ["config:<%= grunt.config.get('env') %>", "less", "cssmin"]
-        livereload: true
+        tasks: ["config:<%= grunt.config.get('env') %>", "newer:less", "newer:cssmin"]
       copy:
         files: "<%= grunt.config.get('sourceDir') %>/assets/*"
-        tasks: ["config:<%= grunt.config.get('env') %>", "copy"]
-        livereload: true
+        tasks: ["config:<%= grunt.config.get('env') %>", "newer:copy"]
 
-  grunt.registerTask "default", [
-    "bower_concat"
-    "browserify"
-    "uglify"
-    "less"
-    "cssmin"
-    "mustache_render"
-    "copy"
-    "bowercopy"
-  ]
 
-  grunt.registerTask "serve", (target) ->
+  grunt.registerTask "build", (target="prod") ->
     grunt.task.run [
-      "config:dev"
-      "default"
+      "config:#{target}"
+      "bower_concat"
+      "newer:browserify"
+      "newer:uglify"
+      "newer:less"
+      "newer:cssmin"
+      "mustache_render"
+      "copy"
+      "bowercopy"
+    ]
+
+  grunt.registerTask "serve", (target="dev") ->
+    grunt.task.run [
+      "build:#{target}"
       "connect:livereload"
       "watch"
     ]
+
+  grunt.registerTask "default", [
+    "build:prod"
+  ]
 
   return

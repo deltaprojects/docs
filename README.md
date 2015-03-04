@@ -11,18 +11,30 @@ $ npm install -g grunt
 $ npm install -g grunt-cli
 ```
 
-## Building
+## Development
 
-To run with development configuration simply run:
+To run with development configuration run:
 
 ```bash
 $ grunt serve
 ```
 
-## Production build
-
-To build for production:
+To run with production configuration run:
 
 ```bash
-$ grunt config:prod default
+$ grunt serve:prod
+```
+
+## Building
+
+Build for development:
+
+```bash
+$ grunt build:dev
+```
+
+Build for production:
+
+```bash
+$ grunt build
 ```
