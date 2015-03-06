@@ -30,6 +30,17 @@ module.exports = (grunt) ->
         options:
           base: ["<%= grunt.config.get('destinationDir') %>"]
 
+    buildcontrol:
+      options:
+        dir: 'prod'
+        commit: true
+        push: true
+        message: 'Built %sourceName% from commit %sourceCommit% on branch %sourceBranch%'
+      pages:
+        options:
+          remote: 'git@github.com:deltaprojects/docs.git'
+          branch: 'gh-pages'
+
     copy:
       assets:
         files: [
