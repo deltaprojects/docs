@@ -25,6 +25,7 @@
     "grunt-bowercopy": "^1.2.0",
     "grunt-browserify": "^3.5.0",
     "grunt-build-control": "^0.3.0",
+    "grunt-bump": "^0.3.0",
     "grunt-closure-tools": "~0.9.8",
     "grunt-config": "^0.2.2",
     "grunt-contrib-coffee": "~0.13.0",

@@ -30,6 +30,15 @@ module.exports = (grunt) ->
         options:
           base: ["<%= grunt.config.get('destinationDir') %>"]
 
+    bump:
+      options:
+        files: ["package.json"]
+        updateConfigs: []
+        commit: true
+        createTag: true
+        push: true
+        pushTo: "origin"
+
     buildcontrol:
       options:
         dir: 'prod'
@@ -38,7 +47,7 @@ module.exports = (grunt) ->
         message: 'Built %sourceName% from commit %sourceCommit% on branch %sourceBranch%'
       pages:
         options:
-          remote: 'git@github.com:deltaprojects/docs.git'
+          remote: 'https://github.com/deltaprojects/docs.git'
           branch: 'gh-pages'
 
     copy:
@@ -154,6 +163,14 @@ module.exports = (grunt) ->
       "build:#{target}"
       "connect:livereload"
       "watch"
+    ]
+
+  grunt.registerTask "deploy", (target = "patch") ->
+    grunt.task.run [
+      "bump-only:#{target}"
+      "build"
+      "buildcontrol"
+      "bump-commit"
     ]
 
   grunt.registerTask "default", [
