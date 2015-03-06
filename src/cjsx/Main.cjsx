@@ -79,9 +79,33 @@ identStream = $(window)
   .flatMapLatest (state) ->
     toc.map (t) -> identFromState state, t
 
+streamFor = (snippet, ident) ->
+  matches = snippet.match(/^\@code\((.+)\) (.+?)$/)
+  if matches
+    [ignore, lang, filename] = matches
+    url = "#{ident.base}/#{filename}"
+    (Bacon.fromPromise $.ajax(url: url, dataType: "text")).map (code) ->
+      button = """
+               <p><button type="button" class="btn btn-default btn-xs" onclick="window.open('#{url}', '_blank')">
+                 <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Open in new window
+               </button></p>
+               """
+      """
+      ```#{lang}
+      #{code}
+      ```
+      #{if lang == "html" then button else ""}
+      """
+  else
+    Bacon.constant(snippet)
+
+includeCode = (markdown, ident) ->
+  (Bacon.combineAsArray (streamFor e, ident for e in markdown.split(/^(@code.*)$/m))).map (vs) -> vs.join("")
+
 identStream.flatMapLatest (ident) ->
     withoutHash = ident.ref.split('#')[0]
-    Bacon.fromPromise $.ajax(url: if ident.base then ident.base + '/' + withoutHash + '.md' else 'index.md')
+    (Bacon.fromPromise $.ajax(url: if ident.base then ident.base + '/' + withoutHash + '.md' else 'index.md')).flatMapLatest (code) ->
+      includeCode(code, ident)
   .mapError ->
     "<div class='alert alert-warning' role='alert'><span class='glyphicon glyphicon-question-sign'></span> Currently not available.</span></div>"
   .map marked
