@@ -44,6 +44,7 @@ module.exports = (grunt) ->
         dir: 'prod'
         commit: true
         push: true
+        connectCommits: false
         message: 'Built %sourceName% from commit %sourceCommit% on branch %sourceBranch%'
       pages:
         options:
