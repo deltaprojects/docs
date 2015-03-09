@@ -6777,8 +6777,29 @@ github.com style (c) Vasily Polovnyov <vast@whiteants.net>
 .hljs-chunk {
   color: #aaa;
 }
+code {
+  color: #ed464a;
+  background-color: #f6f6f6;
+}
+code a,
+code a:hover {
+  color: #ed464a !important;
+}
+.highlight {
+  background-color: #f6f6f6 !important;
+}
+.highlight code {
+  color: #333;
+}
+.hljs-string,
+.hljs-tag .hljs-value {
+  color: #ed464a !important;
+}
 table code {
   white-space: nowrap;
+}
+code a {
+  color: #c7254e;
 }
 .docs-image {
   width: 33%;

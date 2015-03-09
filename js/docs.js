@@ -31003,7 +31003,7 @@ module.exports = warning;
 }.call(this));
 
 },{}],167:[function(require,module,exports){
-var Bacon, Immutable, React, TOCEntry, TableOfContents, addInfo, currentBase, identFromState, identStream, includeCode, marked, renderer, repo, repos, root, streamFor, toc, tocTree, _;
+var Bacon, Immutable, React, TOCEntry, TableOfContents, addInfo, currentBase, identFromState, identStream, includeCode, marked, renderer, repo, repos, root, snipHighlight, snipHighlightHtml, snipHighlightJson, streamFor, toc, tocTree, _;
 
 React = require(5);
 
@@ -31084,12 +31084,17 @@ renderer.link = function(href, title, text) {
   return '<a href="' + addr + '">' + text + '</a>';
 };
 
+renderer.html = function(html) {
+  console.log("output " + html);
+  return html;
+};
+
 renderer.image = function(href, title, text) {
   return '<center><img class="docs-image" src="' + currentBase + '/' + href + '" alt="' + title + '" /></center>';
 };
 
 renderer.table = function(header, body) {
-  return '<div class="table-responsive"><table class="table table-striped table-bordered">\n' + '<thead>\n' + header + '</thead>\n' + '<tbody>\n' + body + '</tbody>\n' + '</table></div>\n';
+  return '<div class="table-responsive"><table class="table table-bordered">\n' + '<thead>\n' + header + '</thead>\n' + '<tbody>\n' + body + '</tbody>\n' + '</table></div>\n';
 };
 
 renderer.code = function(code, lang) {
@@ -31120,7 +31125,7 @@ marked.setOptions({
   gfm: true,
   tables: true,
   breaks: false,
-  smartypants: true
+  smartypants: false
 });
 
 identStream = $(window).asEventStream('statechange').map(History.getState).startWith(History.getState()).flatMapLatest(function(state) {
@@ -31128,6 +31133,50 @@ identStream = $(window).asEventStream('statechange').map(History.getState).start
     return identFromState(state, t);
   });
 });
+
+snipHighlightHtml = function(code, lang) {
+  var entries, entry, html, withoutMarkers, _i, _len;
+  if (code.indexOf("<!-- snip -->") === -1) {
+    return "```" + lang + "\n" + code + "\n```";
+  } else {
+    entries = code.split(/(<!-- snip -->[\S\s]*<!-- end-snip -->)/mg);
+    html = '<div class="highlight"><pre><code>';
+    for (_i = 0, _len = entries.length; _i < _len; _i++) {
+      entry = entries[_i];
+      if (entry.indexOf("<!-- snip -->\n") !== -1) {
+        withoutMarkers = entry.replace("<!-- snip -->\n", "").replace("<!-- end-snip -->", "");
+        html += "<span style='color:#aaa'>···</span>\n" + hljs.highlight(lang, withoutMarkers).value + "<span style='color:#aaa'>···</span>\n";
+      }
+    }
+    return html + '</code></pre></div>\n';
+  }
+};
+
+snipHighlightJson = function(code, lang) {
+  var entries, entry, html, m, output, withoutMarkers, _i, _len;
+  entries = code.trim().split(/^$([\S\s]*)^$/mg);
+  html = '<div class="highlight"><pre><code>';
+  for (_i = 0, _len = entries.length; _i < _len; _i++) {
+    entry = entries[_i];
+    m = entry.match(/$^/mg);
+    if (m && m.length > 1) {
+      withoutMarkers = "{\n" + entry.substring(1, entry.length) + "}";
+      output = hljs.highlight(lang, withoutMarkers).value;
+      html += "<span style='color:#aaa'>···</span>\n" + output.substring(2, output.length - 1) + "<span style='color:#aaa'>···</span>\n";
+    }
+  }
+  return html + '</code></pre></div>\n';
+};
+
+snipHighlight = function(code, lang) {
+  if (lang === "html") {
+    return snipHighlightHtml(code, lang);
+  } else if (lang === "json") {
+    return snipHighlightJson(code, lang);
+  } else {
+    return "```" + lang + "\n" + code + "\n```\n";
+  }
+};
 
 streamFor = function(snippet, ident) {
   var filename, ignore, lang, matches, url;
@@ -31140,8 +31189,8 @@ streamFor = function(snippet, ident) {
       dataType: "text"
     }))).map(function(code) {
       var button;
-      button = "<p><button type=\"button\" class=\"btn btn-default btn-xs\" onclick=\"window.open('" + url + "', '_blank')\">\n  <span class=\"glyphicon glyphicon-eye-open\" aria-hidden=\"true\"></span> Open in new window\n</button></p>";
-      return "```" + lang + "\n" + code + "\n```\n" + (lang === "html" ? button : "");
+      button = "<p><button type=\"button\" class=\"btn btn-default btn-xs\" onclick=\"window.open('" + url + "', '_blank')\">\n  <span class=\"glyphicon glyphicon-eye-open\" aria-hidden=\"true\"></span> View example\n</button></p>";
+      return "" + (snipHighlight(code, lang)) + "\n" + (lang === "html" ? button : "");
     });
   } else {
     return Bacon.constant(snippet);
