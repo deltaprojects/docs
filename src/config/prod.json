@@ -1,8 +1,6 @@
 {
   "repositories": [
     {"id": "sting", "url": "https://sting.de17a.com/docs"},
-    {"id": "suspect", "url": "https://55p.de17a.com/docs"},
-    {"id": "api", "url": "https://cmp.deltaprojects.com/docs/api"}
-
+    {"id": "suspect", "url": "https://55p.de17a.com/docs"}
   ]
 }

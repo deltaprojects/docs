@@ -45,11 +45,15 @@ renderer.link = (href, title, text) ->
   addr = if href.match(/(http|https):\/\//) then href else '?ref=' + href
   '<a href="' + addr + '">' + text + '</a>'
 
+renderer.html = (html) ->
+  console.log("output " + html)
+  html
+
 renderer.image = (href, title, text) ->
   '<center><img class="docs-image" src="' + currentBase + '/' + href + '" alt="' + title + '" /></center>'
 
 renderer.table = (header, body) ->
-  '<div class="table-responsive"><table class="table table-striped table-bordered">\n' + '<thead>\n' + header + '</thead>\n' + '<tbody>\n' + body + '</tbody>\n' + '</table></div>\n'
+  '<div class="table-responsive"><table class="table table-bordered">\n' + '<thead>\n' + header + '</thead>\n' + '<tbody>\n' + body + '</tbody>\n' + '</table></div>\n'
 
 renderer.code = (code, lang) ->
   '<div class="highlight"><pre><code>' + hljs.highlight(lang, code).value + '</code></pre></div>'
@@ -70,7 +74,7 @@ marked.setOptions
   gfm: true
   tables: true
   breaks: false
-  smartypants: true
+  smartypants: false
 
 identStream = $(window)
   .asEventStream 'statechange'
@@ -78,6 +82,37 @@ identStream = $(window)
   .startWith History.getState()
   .flatMapLatest (state) ->
     toc.map (t) -> identFromState state, t
+
+snipHighlightHtml = (code, lang) ->
+  if code.indexOf("<!-- snip -->") == -1
+    "```#{lang}\n#{code}\n```"
+  else
+    entries = code.split(/(<!-- snip -->[\S\s]*<!-- end-snip -->)/mg)
+    html = '<div class="highlight"><pre><code>'
+    for entry in entries
+      if entry.indexOf("<!-- snip -->\n") != -1
+        withoutMarkers = entry.replace("<!-- snip -->\n", "").replace("<!-- end-snip -->", "")
+        html += "<span style='color:#aaa'>···</span>\n" + hljs.highlight(lang, withoutMarkers).value + "<span style='color:#aaa'>···</span>\n"
+    html + '</code></pre></div>\n'
+
+snipHighlightJson = (code, lang) ->
+  entries = code.trim().split(/^$([\S\s]*)^$/mg)
+  html = '<div class="highlight"><pre><code>'
+  for entry in entries
+    m = entry.match(/$^/mg)
+    if m && m.length > 1
+      withoutMarkers = "{\n" + entry.substring(1, entry.length) + "}"
+      output = hljs.highlight(lang, withoutMarkers).value
+      html += "<span style='color:#aaa'>···</span>\n" + output.substring(2, output.length - 1) + "<span style='color:#aaa'>···</span>\n"
+  html + '</code></pre></div>\n'
+
+snipHighlight = (code, lang) ->
+  if lang == "html"
+    snipHighlightHtml(code, lang)
+  else if lang == "json"
+    snipHighlightJson(code, lang)
+  else
+    "```#{lang}\n#{code}\n```\n"
 
 streamFor = (snippet, ident) ->
   matches = snippet.match(/^\@code\((.+)\) (.+?)$/)
@@ -87,13 +122,11 @@ streamFor = (snippet, ident) ->
     (Bacon.fromPromise $.ajax(url: url, dataType: "text")).map (code) ->
       button = """
                <p><button type="button" class="btn btn-default btn-xs" onclick="window.open('#{url}', '_blank')">
-                 <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> Open in new window
+                 <span class="glyphicon glyphicon-eye-open" aria-hidden="true"></span> View example
                </button></p>
                """
       """
-      ```#{lang}
-      #{code}
-      ```
+      #{snipHighlight(code, lang)}
       #{if lang == "html" then button else ""}
       """
   else

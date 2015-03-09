@@ -7,8 +7,33 @@
 @deltaRed: #ED464A;
 @deltaPurple: #49396A;
 
+code {
+  color: @deltaRed;
+  background-color: #f6f6f6;
+}
+
+code a, code a:hover {
+  color: @deltaRed !important;
+}
+
+.highlight {
+  background-color: #f6f6f6 !important;
+
+  code {
+    color: #333;
+  }
+}
+
+.hljs-string, .hljs-tag .hljs-value {
+  color: @deltaRed !important;
+}
+
 table code {
   white-space: nowrap;
+}
+
+code a {
+  color: #c7254e;
 }
 
 .docs-image {
