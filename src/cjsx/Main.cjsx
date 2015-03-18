@@ -8,6 +8,7 @@ currentBase = null
 
 addInfo = (id, url) -> (entry) ->
   title: entry.title
+  tagline: entry.tagline
   url: entry.url
   root: url
   id: id
@@ -135,15 +136,24 @@ streamFor = (snippet, ident) ->
 includeCode = (markdown, ident) ->
   (Bacon.combineAsArray (streamFor e, ident for e in markdown.split(/^(@code.*)$/m))).map (vs) -> vs.join("")
 
+
 identStream.flatMapLatest (ident) ->
-    withoutHash = ident.ref.split('#')[0]
-    (Bacon.fromPromise $.ajax(url: if ident.base then ident.base + '/' + withoutHash + '.md' else 'index.md')).flatMapLatest (code) ->
-      includeCode(code, ident)
+    if ident.base
+      withoutHash = ident.ref.split('#')[0]
+      (Bacon.fromPromise $.ajax(url: ident.base + '/' + withoutHash + '.md')).flatMapLatest (code) ->
+        includeCode(code, ident)
+    else
+      document.getElementById("splash").style.display = 'block'
+      document.getElementById("doc").style.display = 'none'
+      Bacon.never()
+
   .mapError ->
     "<div class='alert alert-warning' role='alert'><span class='glyphicon glyphicon-question-sign'></span> Currently not available.</span></div>"
   .map marked
   .onValue (html) ->
-    document.getElementById("contents").innerHTML = html
+    document.getElementById("splash").style.display = 'none'
+    document.getElementById("doc").style.display = 'block'
+    document.getElementById("doc").innerHTML = html
 
 tocTree = Bacon.combineAsArray(toc, identStream).map (v) ->
   [tree, ident] = v
@@ -189,5 +199,32 @@ TableOfContents = React.createClass
       {entries}
     </ul>
 
+SplashEntry = React.createClass
+  click: ->
+    unless @props.offline
+      History.pushState null, null, '?ref=' + @props.id + '/' + @props.url
+  render: ->
+
+    link = if @props.offline
+      <a onClick={@click}>
+        <span className="glyphicon glyphicon-remove" aria-hidden="true"></span>
+        {@props.title} offline
+      </a>
+    else
+      <a onClick={@click}>{@props.title}</a>
+    
+    <div className="col-sm-6">
+      <h3>{link}</h3>
+      <p>{@props.tagline}</p>
+    </div>
+
+Splash = React.createClass
+  render: ->
+    entries = (<SplashEntry {...entry} /> for entry in @props.entries when entry.tagline?)
+    <div className="row">
+      {entries}
+    </div>
+
 tocTree.onValue (toc) ->
   React.render <TableOfContents entries={toc} />, document.getElementById "toc"
+  React.render <Splash entries={toc} />, document.getElementById "contents"
