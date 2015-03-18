@@ -6,8 +6,13 @@
   <div class="col-sm-6">
     <h3><a href="?ref=sting/index">Building Ads</a></h3>
     <p>Learn how to build ads using HTML5 for use with our ad hosting system and DSP.</p>
-  </div><div class="col-sm-6">
+  </div>
+  <div class="col-sm-6">
     <h3><a href="?ref=suspect/index">Delta Integrations</a></h3>
     <p>Learn how to integrate our system with your site for selling impressions.</p>
+  </div>
+  <div class="col-sm-6">
+    <h3><a href="?ref=api/index">DSP API</a></h3>
+    <p>Learn how to integrate your backend system with our DSP using our REST API.</p>
   </div>
 </div>
