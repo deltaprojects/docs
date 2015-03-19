@@ -119,9 +119,6 @@ module.exports = (grunt) ->
         ]
       markdown:
         files: [
-          data: "<%= grunt.config.get('sourceDir') %>/config/<%= grunt.config.get('env') %>.json"
-          template: "<%= grunt.config.get('sourceDir') %>/markdown/index.mustache"
-          dest: "<%= grunt.config.get('destinationDir') %>/index.md"
         ]
 
     watch:

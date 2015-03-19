@@ -46,10 +46,6 @@ renderer.link = (href, title, text) ->
   addr = if href.match(/(http|https):\/\//) then href else '?ref=' + href
   '<a href="' + addr + '">' + text + '</a>'
 
-renderer.html = (html) ->
-  console.log("output " + html)
-  html
-
 renderer.image = (href, title, text) ->
   '<center><img class="docs-image" src="' + currentBase + '/' + href + '" alt="' + title + '" /></center>'
 
@@ -136,25 +132,6 @@ streamFor = (snippet, ident) ->
 includeCode = (markdown, ident) ->
   (Bacon.combineAsArray (streamFor e, ident for e in markdown.split(/^(@code.*)$/m))).map (vs) -> vs.join("")
 
-
-identStream.flatMapLatest (ident) ->
-    if ident.base
-      withoutHash = ident.ref.split('#')[0]
-      (Bacon.fromPromise $.ajax(url: ident.base + '/' + withoutHash + '.md')).flatMapLatest (code) ->
-        includeCode(code, ident)
-    else
-      document.getElementById("splash").style.display = 'block'
-      document.getElementById("doc").style.display = 'none'
-      Bacon.never()
-
-  .mapError ->
-    "<div class='alert alert-warning' role='alert'><span class='glyphicon glyphicon-question-sign'></span> Currently not available.</span></div>"
-  .map marked
-  .onValue (html) ->
-    document.getElementById("splash").style.display = 'none'
-    document.getElementById("doc").style.display = 'block'
-    document.getElementById("doc").innerHTML = html
-
 tocTree = Bacon.combineAsArray(toc, identStream).map (v) ->
   [tree, ident] = v
   _.each tree, (t) ->
@@ -173,8 +150,11 @@ TOCEntry = React.createClass
   click: ->
     unless @props.offline
       History.pushState null, null, '?ref=' + @props.id + '/' + @props.url
+
+    null
+
   render: ->
-    entries = (<TOCEntry {...entry} /> for entry in @props.sections || [])
+    entries = (<TOCEntry {...entry} key={entry.id + '.' + entry.url} /> for entry in @props.sections || [])
     classes = React.addons.classSet
       'active': @props.active
 
@@ -194,7 +174,7 @@ TOCEntry = React.createClass
 
 TableOfContents = React.createClass
   render: ->
-    entries = (<TOCEntry {...entry} /> for entry in @props.entries)
+    entries = (<TOCEntry {...entry} key={entry.id + '.' + entry.url} /> for entry in @props.entries)
     <ul className="nav nav-stacked fixed">
       {entries}
     </ul>
@@ -203,6 +183,9 @@ SplashEntry = React.createClass
   click: ->
     unless @props.offline
       History.pushState null, null, '?ref=' + @props.id + '/' + @props.url
+
+    null
+
   render: ->
 
     link = if @props.offline
@@ -220,11 +203,53 @@ SplashEntry = React.createClass
 
 Splash = React.createClass
   render: ->
-    entries = (<SplashEntry {...entry} /> for entry in @props.entries when entry.tagline?)
+    entries = (<SplashEntry {...entry} key={entry.id + '.' + entry.url} /> for entry in @props.entries when entry.tagline?)
     <div className="row">
       {entries}
     </div>
 
-tocTree.onValue (toc) ->
-  React.render <TableOfContents entries={toc} />, document.getElementById "toc"
-  React.render <Splash entries={toc} />, document.getElementById "contents"
+htmlStream = identStream.flatMapLatest (ident) ->
+    if ident.base
+      withoutHash = ident.ref.split('#')[0]
+      (Bacon.fromPromise $.ajax(url: ident.base + '/' + withoutHash + '.md')).flatMapLatest (code) ->
+        includeCode(code, ident)
+    else
+      Bacon.constant(false)
+  .mapError ->
+    "<div class='alert alert-warning' role='alert'><span class='glyphicon glyphicon-question-sign'></span> Currently not available.</span></div>"
+  .map (md) ->
+    if md
+      marked md
+    else
+      md
+
+Application = React.createClass
+  render: ->
+    docOrSplash = if @props.html
+        <span dangerouslySetInnerHTML={{__html:@props.html}}></span>
+      else
+        <div>
+          <h1 className="page-header">Knowledge Base</h1>
+          <p className="lead">Learn how to build ads in HTML5, participate in Delta Project's Ad Exchange or build systems that integrate with our platform.</p>
+          <Splash entries={@props.toc} />
+        </div>
+
+    <div className="row">
+      <div className="col-md-2 toc" role="complementary">
+        <div className="logo">
+          <a href="/" >
+            <img src="assets/delta-logo.svg" />
+          </a>
+        </div>
+        <nav className="bs-docs-sidebar">
+          <TableOfContents entries={@props.toc} />
+        </nav>
+      </div>
+      <div className="col-md-9" role="main">
+        {docOrSplash}
+      </div>
+    </div>
+
+Bacon.onValues tocTree, htmlStream, (toc, html) ->    
+  React.render <Application toc={toc} html={html} />, document.getElementById "application"
+
