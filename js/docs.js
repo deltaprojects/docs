@@ -31003,7 +31003,7 @@ module.exports = warning;
 }.call(this));
 
 },{}],167:[function(require,module,exports){
-var Bacon, Immutable, React, TOCEntry, TableOfContents, addInfo, currentBase, identFromState, identStream, includeCode, marked, renderer, repo, repos, root, snipHighlight, snipHighlightHtml, snipHighlightJson, streamFor, toc, tocTree, _;
+var Application, Bacon, Immutable, React, Splash, SplashEntry, TOCEntry, TableOfContents, addInfo, currentBase, htmlStream, identFromState, identStream, includeCode, marked, renderer, repo, repos, root, snipHighlight, snipHighlightHtml, snipHighlightJson, streamFor, toc, tocTree, _;
 
 React = require(5);
 
@@ -31021,6 +31021,7 @@ addInfo = function(id, url) {
   return function(entry) {
     return {
       title: entry.title,
+      tagline: entry.tagline,
       url: entry.url,
       root: url,
       id: id,
@@ -31082,11 +31083,6 @@ renderer.link = function(href, title, text) {
   var addr;
   addr = href.match(/(http|https):\/\//) ? href : '?ref=' + href;
   return '<a href="' + addr + '">' + text + '</a>';
-};
-
-renderer.html = function(html) {
-  console.log("output " + html);
-  return html;
 };
 
 renderer.image = function(href, title, text) {
@@ -31213,20 +31209,6 @@ includeCode = function(markdown, ident) {
   });
 };
 
-identStream.flatMapLatest(function(ident) {
-  var withoutHash;
-  withoutHash = ident.ref.split('#')[0];
-  return (Bacon.fromPromise($.ajax({
-    url: ident.base ? ident.base + '/' + withoutHash + '.md' : 'index.md'
-  }))).flatMapLatest(function(code) {
-    return includeCode(code, ident);
-  });
-}).mapError(function() {
-  return "<div class='alert alert-warning' role='alert'><span class='glyphicon glyphicon-question-sign'></span> Currently not available.</span></div>";
-}).map(marked).onValue(function(html) {
-  return document.getElementById("contents").innerHTML = html;
-});
-
 tocTree = Bacon.combineAsArray(toc, identStream).map(function(v) {
   var ident, tree;
   tree = v[0], ident = v[1];
@@ -31249,8 +31231,9 @@ tocTree = Bacon.combineAsArray(toc, identStream).map(function(v) {
 TOCEntry = React.createClass({
   click: function() {
     if (!this.props.offline) {
-      return History.pushState(null, null, '?ref=' + this.props.id + '/' + this.props.url);
+      History.pushState(null, null, '?ref=' + this.props.id + '/' + this.props.url);
     }
+    return null;
   },
   render: function() {
     var classes, entries, entry, link;
@@ -31260,7 +31243,9 @@ TOCEntry = React.createClass({
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         entry = _ref[_i];
-        _results.push(React.createElement(TOCEntry, React.__spread({}, entry)));
+        _results.push(React.createElement(TOCEntry, React.__spread({}, entry, {
+          "key": entry.id + '.' + entry.url
+        })));
       }
       return _results;
     }).call(this);
@@ -31292,7 +31277,9 @@ TableOfContents = React.createClass({
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         entry = _ref[_i];
-        _results.push(React.createElement(TOCEntry, React.__spread({}, entry)));
+        _results.push(React.createElement(TOCEntry, React.__spread({}, entry, {
+          "key": entry.id + '.' + entry.url
+        })));
       }
       return _results;
     }).call(this);
@@ -31302,10 +31289,115 @@ TableOfContents = React.createClass({
   }
 });
 
-tocTree.onValue(function(toc) {
-  return React.render(React.createElement(TableOfContents, {
-    "entries": toc
-  }), document.getElementById("toc"));
+SplashEntry = React.createClass({
+  click: function() {
+    if (!this.props.offline) {
+      History.pushState(null, null, '?ref=' + this.props.id + '/' + this.props.url);
+    }
+    return null;
+  },
+  render: function() {
+    var link;
+    link = this.props.offline ? React.createElement("a", {
+      "onClick": this.click
+    }, React.createElement("span", {
+      "className": "glyphicon glyphicon-remove",
+      "aria-hidden": "true"
+    }), this.props.title, " offline") : React.createElement("a", {
+      "onClick": this.click
+    }, this.props.title);
+    return React.createElement("div", {
+      "className": "col-sm-6"
+    }, React.createElement("h3", null, link), React.createElement("p", null, this.props.tagline));
+  }
+});
+
+Splash = React.createClass({
+  render: function() {
+    var entries, entry;
+    entries = (function() {
+      var _i, _len, _ref, _results;
+      _ref = this.props.entries;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        entry = _ref[_i];
+        if (entry.tagline != null) {
+          _results.push(React.createElement(SplashEntry, React.__spread({}, entry, {
+            "key": entry.id + '.' + entry.url
+          })));
+        }
+      }
+      return _results;
+    }).call(this);
+    return React.createElement("div", {
+      "className": "row"
+    }, entries);
+  }
+});
+
+htmlStream = identStream.flatMapLatest(function(ident) {
+  var withoutHash;
+  if (ident.base) {
+    withoutHash = ident.ref.split('#')[0];
+    return (Bacon.fromPromise($.ajax({
+      url: ident.base + '/' + withoutHash + '.md'
+    }))).flatMapLatest(function(code) {
+      return includeCode(code, ident);
+    });
+  } else {
+    return Bacon.constant(false);
+  }
+}).mapError(function() {
+  return "<div class='alert alert-warning' role='alert'><span class='glyphicon glyphicon-question-sign'></span> Currently not available.</span></div>";
+}).map(function(md) {
+  if (md) {
+    return marked(md);
+  } else {
+    return md;
+  }
+});
+
+Application = React.createClass({
+  render: function() {
+    var docOrSplash;
+    docOrSplash = this.props.html ? React.createElement("span", {
+      "dangerouslySetInnerHTML": {
+        __html: this.props.html
+      }
+    }) : React.createElement("div", null, React.createElement("h1", {
+      "className": "page-header"
+    }, "Knowledge Base"), React.createElement("p", {
+      "className": "lead"
+    }, "Learn how to build ads in HTML5, participate in Delta Project\'s Ad Exchange or build systems that integrate with our platform."), React.createElement(Splash, {
+      "entries": this.props.toc
+    }));
+    return React.createElement("div", {
+      "className": "row"
+    }, React.createElement("div", {
+      "className": "col-md-2 toc",
+      "role": "complementary"
+    }, React.createElement("div", {
+      "className": "logo"
+    }, React.createElement("a", {
+      "href": "/"
+    }, React.createElement("img", {
+      "src": "assets/delta-logo.svg"
+    }))), React.createElement("nav", {
+      "className": "bs-docs-sidebar"
+    }, React.createElement(TableOfContents, {
+      "entries": this.props.toc
+    }))), React.createElement("div", {
+      "className": "col-md-9",
+      "role": "main"
+    }, docOrSplash));
+  }
+});
+
+Bacon.onValues(tocTree, htmlStream, function(toc, html) {
+  return React.render(React.createElement(Application, {
+    "toc": toc,
+    "html": html
+  }), document.getElementById("application"));
 });
 
 
