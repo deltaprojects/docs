@@ -1,5 +1,7 @@
-# Simple Multi-Project Documentation
+# DEPRECATED
+Docs now lives in [https://github.com/deltaprojects/delta-docs](https://github.com/deltaprojects/delta-docs)
 
+# Simple Multi-Project Documentation
 ## Installation
 Make sure you have an updated npm (`npm install -g npm@latest`).
 
@@ -12,7 +14,6 @@ $ npm install -g grunt-cli
 ```
 
 ## Development
-
 To run with development configuration run:
 
 ```bash
@@ -26,7 +27,6 @@ $ grunt serve:prod
 ```
 
 ## Building
-
 Build for development:
 
 ```bash
